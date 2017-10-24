@@ -13,12 +13,12 @@ def nodes_sources(lines):
         x = line.split(" ")
         nodes_numbers.add(int(x[1][1]))
         nodes_numbers.add(int(x[2][1]))
-        if 'Vsrc' in line or 'I' in line:
+        if 'Vsrc ' in line or 'I ' in line:
             sources+=1
     return max(nodes_numbers), sources
 
 ## File reading
-fname = 'testcases/3.txt'
+fname = 'testcases/7.txt'
 path, file = os.path.split(fname)
 if not os.path.exists("output"):
     os.makedirs("output")
@@ -125,29 +125,33 @@ A[n:,n:] = D
 
 ################# All Matrices are done ############################
 count_iterations = 0
+print A
 a_inverse = np.linalg.inv(A)
 X = np.matmul(a_inverse,Z) ##Here we get initial solution of X
+Z_init = Z.copy()
 while count_iterations < iterations:
+    print Z_init
     t+= step
     result[t]=X
+    Z = Z_init.copy()
     #From X we want to pass capacitors and inductors to numerical solution function
     ##Capacitors
     cap = 0
     while cap < len(caps):
         C, n1, n2 = caps[cap]
         if n2==0:
-            Z[n1,0] = (C/step)*X[n1]
+            Z[n1,0] += (C/step)*X[n1]
         else:
             v = (C/step)*(X[n1]-X[n2])
-            Z[n1,0]  = v
-            Z[n2,0] = -v
+            Z[n1,0]  += v
+            Z[n2,0] -= v
         cap+=1
 
     ##Inductors
     ind = 0
     while ind < len(inductors):
         L, index = inductors[ind]
-        Z[index,0] = X[index,0]*-1*(L/step)
+        Z[index,0] += X[index,0]*-1*(L/step)
         ind+=1
 
     X = np.matmul(a_inverse, Z)
@@ -191,13 +195,3 @@ while current < X.shape[0]:
     f.write('\n')
     current+=1
     inductors_count+=1
-
-
-
-
-
-
-
-
-
-
